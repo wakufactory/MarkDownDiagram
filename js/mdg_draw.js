@@ -202,10 +202,11 @@ this.parse = function(text) {
 				if(a[5]!=undefined) tp = a[5] ;
 				conn.push( {from:b.id,to:a[6],param:{s_pos:(fp+(l.length+((b.title!=undefined)?1:0))),e_pos:tp,cls:a[3],arrow:ar,type:a[7]}}) ;
 			} else if(a = m_image.exec(cl)) {
-				var l = ( `<img src="${a[2]}" title="${a[1]}" />`) ;
+				var im = ( `<img src="${a[2]}" title="${a[1]}" />`) ;
 				if(a[3]!=undefined) {
-					l = "<figure>"+l+"<figcaption>"+a[3]+"</figcaption></figure>" ;
+					im = "<figure>"+im+"<figcaption>"+a[3]+"</figcaption></figure>" ;
 				}
+				ll.push(im) ;
 			} else if(m_comm.exec(cl)){
 				continue ;
 			} else {
