@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width">
+<title>mdg</title>
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="mdg_draw.js"></script>
+<script type="text/javascript">
+var mdg = function() {
+this.m_h = /^\[([a-z0-9-_]+)\]\s*(?:\((.+)\))?\s*(?:<([0-9\.]+),([0-9\.]+)>)?/ ;
+this.bpos = {} ;	
+this.parse = function(text) {
+	var box = [] ;
+	var conn = [] ;
+	var l = text.split("\n") ;
+	var b = {id:"",bl:[]} ;
+	for(var i in l) {
+		var cl = l[i] ;
+		var a ;
+		if(cl=="") continue ;
+		if(a = this.m_h.exec(cl)) {
+			if(b.bl.length>0) {
+				pbox(b) ;
+			}
+			b.id = a[1] ;
+			b.bl = [] ;
+			b.cls = a[2] ;
+			b.pos = (a[3]!=undefined && a[4]!=undefined)?{x:a[3],y:a[4]}:undefined ;
+		} else {
+			b.bl.push( cl );
+		}
+	}
+	if(b.bl.length>0) pbox(b) ;
+
+	function pbox(b) {
+		var l = [] ;
+		var ll = [] ;
+		var m_sep = /^---$/ ;
+		var m_title = /^#(.+)/ ;
+		var m_link = /^([u|d|l|r][0-9]*)?(<)?=(?:\((.*)\))?=(>)?([u|d|l|r][0-9]*)?\[([a-z0-9-_]+)\]([a-z])?/i ;
+		var m_comm = /^\/\// ;
+		var a ;
+		for(var i in b.bl) {
+			var cl = b.bl[i] ;
+			if(m_sep.exec(cl)) {
+				if(ll.length>0) l.push( ll.join("<br/>")) ;
+				ll = [] ;
+			} else if(a = m_title.exec(cl)) {
+				b.title = a[1] ;
+			} else if( a=m_link.exec(cl)) {
+				if(ll.length>0) l.push( ll.join("<br/>")) ;
+				ll = [] ;
+				var fp = "r" ;
+				var tp = "l1" ;
+				var ar = (a[2]!=undefined)?((a[4]!=undefined)?"b":"f"):((a[4]!=undefined)?"t":"") ;
+				if(a[1]!=undefined) fp = a[1]
+				if(a[5]!=undefined) tp = a[5] ;
+				conn.push( {from:b.id,to:a[6],param:{s_pos:(fp+(l.length+((b.title!=undefined)?1:0))),e_pos:tp,cls:a[3],arrow:ar,type:a[7]}}) ;
+			} else if(m_comm.exec(cl)){
+				continue ;
+			} else {
+				ll.push(cl) ;
+			}
+		}
+		if(ll.length>0) l.push( ll.join("<br/>")) ;
+//		console.log("class="+b.cls) ;
+		if(l.length==1) l = l[0] ;
+		box.push( {id:b.id,inner:l,pos:b.pos,cls:b.cls,title:b.title} ) ;
+	}
+	return {box:box,conn:conn} ;
+}
+this.savepos = function(id,x,y) {
+//	console.log(`savepos ${id} ${x}-${y}`) ;
+	this.bpos[id] = {x:parseFloat(x),y:parseFloat(y)} ;
+}
+this.upd_text = function(text) {
+	var l = text.split("\n") ;
+	for(var i in l) {
+		var cl = l[i] ;
+		var a ;
+		if(cl=="") continue ;
+		if(a = this.m_h.exec(cl)) {
+			var pos = (this.bpos[a[1]]!=undefined)?this.bpos[a[1]]:{x:a[3],y:a[4]} ;
+			l[i] = "["+a[1]+"]"+((a[2]!=undefined)?"("+a[2]+")":"")+" <"+pos.x+","+pos.y+">" ;
+		}
+	}
+	return l.join("\n") ;
+}
+}
+var m,b ;
+$(function() {
+	m = new mdg() ;
+	b = new mdg_draw($('#base'),$('#pstyle')) ;
+	
+	var data = m.parse($('#source').val()) ;
+	b.setobj(data) ;
+	b.redraw(data);
+	
+	$('#source').on('keyup',function() {
+		data = m.parse($(this).val()) ;
+			b.setobj(data) ;
+			b.redraw(data);
+	})
+
+	$(window).resize($('#base'),function() {
+//		redraw(can,data.conn) ;
+	})
+	$(document).on("dragstart",'#base .box',function(ev){
+		var oe = ev.originalEvent ;
+//		console.log("dstart") ;
+//		console.log(oe.pageX+"/"+oe.pageY);
+		ev.originalEvent.dataTransfer.setData("text",$(this).attr('id')+"/"+oe.pageX+"/"+oe.pageY);
+	})
+	$('#base').on("dragenter dragover",function(){
+		return false ;
+	}).on("drop",function(ev){
+		var oe = ev.originalEvent ;
+		var k = ev.originalEvent.dataTransfer.getData("text").split("/") ;
+		var id = k[0] ;
+		var ox = oe.pageX-k[1] ;
+		var oy = oe.pageY-k[2] ;
+//		console.log(ox+"/"+oy) ;
+		var em = parseInt($('html').css('font-size')) ;
+		var ex = parseInt($('#'+id).css("left")) ;
+		var ey = parseInt($('#'+id).css("top")) ;
+		var px = Math.floor(((ex+ox)/em+0.25)*2)/2 ;
+		var py = Math.floor(((ey+oy)/em+0.25)*2)/2 ;
+
+		m.savepos(id,px,py) ;
+		b.savepos(id,px,py) ;
+		b.redraw(data) ;
+		$('#source').val(m.upd_text($('#source').val())) ;
+		return false ;
+	})
+})
+</script>
+<link rel="stylesheet" type="text/css" href="mdg.css">
+<style type="text/css">
+html,body{
+	width:100%;
+	height:100%;
+	margin:0 ;
+	padding:0 ;
+	box-sizing:border-box;
+}
+#main {
+	display:flex ;
+	width:100% ;
+	height:100% ;
+}
+#edit {
+	frex-direction: row ;
+	width:30% ;		
+	height:calc(100% - 2em) ;
+	padding:1em ;
+}
+#view {
+	frex-direction: row ;
+	width:70% ;	
+	height:100% ;
+	overflow:scroll ;
+}
+#base {
+	display:block ;
+	font-size:16px ;
+	font-family:sans-serif;
+	margin:10px ;
+	width:calc(100% - 20px) ;
+	height:calc(100% - 20px);
+	background-color:#eef ;
+	transform-origin:0 0 ;
+	transform: scale(1.0);
+}
+#source {
+	width:calc(100%) ;
+	height:calc(100% - 10em) ;
+	font-size:1rem ;
+	font-family:monospace ;
+}
+@media print {
+	#edit {
+		display:none ;
+	}
+	#view {
+		width:100% ;
+	}
+}
+</style>
+<style type="text/css" id=ustyle>
+div.mdg .rr {
+	font-size:1.5em ;
+	border-radius: 0.5em ;
+	box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+	transform:rotate(5deg) ;
+	border:4px dotted red ;
+}
+div.mdg .br {
+	width:5em ;
+	text-align:center ;
+	background-color:#fee ;
+	border-radius:5em ;
+
+}
+div.mdg .im {
+	width:200px ;
+	height:200px ;
+	color:white ;
+	border:none ;
+	background-image:url("img/jfe.jpg");
+}
+div.mdg svg .ra {
+	stroke:#f00 ;
+	stroke-width:2px ;
+	stroke-dasharray:10px ;
+}
+div.mdg svg .bb {
+	stroke:#00f ;
+	stroke-width:4px ;
+}
+div.mdg svg .b {
+	stroke-width:2px ;
+}
+</style>
+<style type="text/css" id=pstyle></style>
+</head>
+<body>
+<div id=main>
+<div id=edit>
+<h2>edit</h2>
+<textarea id=source>
+[b1] <1,1>
+あああああ
+<=(l_w4 l_d10 red)=>u[b2]
+いいいい
+==>[b3]
+
+//コメントです
+[b2] (bg_red bd_r6) <7,6.5>
+いいいいい
+いいいい
+==>l2[b3]
+
+[b3] <15.5,2.5>
+#たいとる
+えええええ
+=(blue)=[b5]s
++
++
+---
+おおおおお
+==r[b4]
+
+[b4](rr) <8.5,15.5>
+ああああああ
+l==>d[b1]
+
+[b5](trans) <26,2>
+<img src="../img/server.jpg" width=100/>
+d=(l_w4)=>u[b6]s
+
+[b6] <29.5,17>
+aaaa
+
+
+</textarea>
+</div>
+<div id=view>
+<div id=base class=mdg><svg></svg>
+</div>
+</div>
+</div>
+</body>
+</html>

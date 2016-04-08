@@ -1,0 +1,79 @@
+div.mdg {
+	position:relative ;
+	box-sizing:border-box;
+}
+div.mdg svg {
+	position:absolute ;
+	width:100% ;
+	height:100% ;
+	z-index:2 ;
+	pointer-events: none;
+}
+div.mdg .box {
+	position:absolute ;
+	border:2px solid black ;
+	background-color:white;
+	line-height:1.5em ;
+	padding:0.25em;
+	box-sizing:border-box;
+	cursor:move;
+}
+div.mdg table.box {
+	border-collapse: collapse ;
+	margin:0 ;
+	padding:0 ;	
+}
+div.mdg table td {
+	padding:0.25em;
+	border:1px solid black ;
+}
+div.mdg table th {
+	background-color:#eee ;
+}
+div.mdg svg line {
+	stroke:#000 ;
+	stroke-width:2px ;
+}
+div.mdg svg path {
+	stroke:#000 ;
+	stroke-width:2px ;
+	fill:none ;
+}
+div.mdg div.trans {
+	background:none ;
+	border:none ;
+	padding:0 ;
+	line-height:100% ;
+}
+figure {
+	margin:0 ;
+}
+div.mdg .red {
+	color:red ;
+	stroke:#f00 ;
+}
+div.mdg .blue {
+	color:blue ;
+	stroke:#00f ;
+}
+div.mdg .bd_red {
+	border-color:red ;
+}
+div.mdg .bd_blue {
+	border-color:blue ;
+}
+div.mdg .bg_red {
+	background-color:#fee ;
+}
+div.mdg .bg_blue {
+	background-color:#eef ;
+}
+div.mdg .l_w4 {
+	stroke-width:4px ;
+}
+div.mdg .l_d10 {
+	stroke-dasharray:10px ;
+}
+div.mdg .bd_r6 {
+	border-radius:6px ;
+}
