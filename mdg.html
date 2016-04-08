@@ -9,11 +9,12 @@
 <script type="text/javascript">
 $(function() {
 	var mag = 1.0 ;
-	$('#base').css('transform',`scale(${mag})`).css('width',"2000px").css('height',"2900px") ;
+	$('#base').css('width',"2000px").css('height',"2900px") ;
 	
 	$('#zoom').on("input",function() {
 		mag = $(this).val()/100 ;
-		$('#base').css('transform',`scale(${mag})`) ;
+//		console.log(mag) ;
+		$('#szoom').html("#base {transform: scale("+mag+")}");
 	})	
 	var b = new mdg_draw($('#base')) ;
 	var data = b.parse($('#source').val()) ;
@@ -96,11 +97,6 @@ html,body{
 	height:calc(100% - 20px);
 	background-color:#eef ;
 	transform-origin:0 0 ;
-	transform: scale(0.5);
-}
-#base {
-	width:2000px ;
-	height:2000px ;
 }
 #source {
 	width:calc(100%) ;
@@ -112,6 +108,14 @@ html,body{
 input[type=range] {
 	width:300px ;
 }
+
+</style>
+<style id=szoom>
+#base {
+	transform: scale(1.0);	
+}
+</style>
+<style>
 @page {
 	size: A4 ;
 	margin: 0;
@@ -135,9 +139,11 @@ input[type=range] {
 		margin:5mm ;
 		padding:0 ;
 		background-color:#fff ;
+		transform: scale(0.37) ;
 	}
 }
 </style>
+
 <link rel="stylesheet" type="text/css" href="custom.css">
 </head>
 <body>

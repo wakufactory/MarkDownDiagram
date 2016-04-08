@@ -3,7 +3,7 @@ var mdg_draw = function(_base) {
 this.base = $(_base) ;
 this.svg = $("svg",base) ;
 this.bpos = {} ;	
-this.em = 16 ;
+this.em = parseInt($('html').css('font-size')) ;
 
 if(this.svg.length==0) {
 	this.svg = $(document.createElement("svg")) ;
@@ -66,14 +66,13 @@ this.create = function(editable,box) {
 		for(var i in box.cls) e.addClass(box.cls[i]) ;
 	}
 	this.base.append(e) ;
-	lp = {x:parseInt(pos.x) + round(parseInt(e.css('width'))/16)+2,y:parseInt(pos.y)+1};
+	lp = {x:parseInt(pos.x) + round(parseInt(e.css('width'))/this.em)+2,y:parseInt(pos.y)+1};
 	return pos ;
 }
 // draw connect line 
 function connect(o1,o2,param) {
 	if(o1.length==0 || o2.length==0) return null ;
 	
-	var em = 16 ;
 	function s(o,f) {
 		var sx = parseInt(o.css('left')) ;
 		var sy = parseInt(o.css('top')) ;
