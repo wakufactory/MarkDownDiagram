@@ -1,3 +1,4 @@
+/* mdg basic css*/
 div.mdg {
 	position:relative ;
 	box-sizing:border-box;
@@ -39,11 +40,20 @@ div.mdg svg path {
 	stroke-width:2px ;
 	fill:none ;
 }
+
+/* preset class */
 div.mdg div.trans {
 	background:none ;
 	border:none ;
+}
+div.mdg div.image {
+	background:none ;
+	border:none ;
 	padding:0 ;
-	line-height:100% ;
+	line-height:100% ;	
+}
+div.mdg div.image img {
+	max-width:100px ;	
 }
 figure {
 	margin:0 ;
@@ -55,6 +65,9 @@ div.mdg .red {
 div.mdg .blue {
 	color:blue ;
 	stroke:#00f ;
+}
+div.mdg .bold {
+	font-weight:bold ;
 }
 div.mdg .bd_red {
 	border-color:red ;
@@ -76,4 +89,11 @@ div.mdg .l_d10 {
 }
 div.mdg .bd_r6 {
 	border-radius:6px ;
+}
+div.mdg .circle4 {
+	width:4em;
+	height:4em ;
+	text-align:center ;
+	padding-top:1em ;
+	border-radius:2em ;
 }

@@ -1,0 +1,8 @@
+/*custom css sample*/
+div.mdg .custom1 {
+	font-size:1.5em ;
+	border-radius: 0.5em ;
+	box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+	transform:rotate(5deg) ;
+	border:4px dotted red ;
+}

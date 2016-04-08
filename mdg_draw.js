@@ -1,7 +1,6 @@
-var mdg_draw = function(_base,_pstyle) {
+var mdg_draw = function(_base) {
 	
 this.base = $(_base) ;
-this.pstyle = $(_pstyle) ;
 this.svg = $("svg",base) ;
 this.bpos = {} ;	
 this.em = 16 ;
@@ -10,37 +9,41 @@ if(this.svg.length==0) {
 	this.svg = $(document.createElement("svg")) ;
 	this.base.append(this.svg) ;
 }
-
+var lp = {x:0,y:0},le ;
 this.setobj = function(data) {
 	$('div,table',this.base).remove() ;
+	lp = {x:0,y:0} ;
 	for(var i in data.box) {
-		var pos = create(true,data.box[i]) ;
+		var pos = this.create(true,data.box[i]) ;
 		this.bpos[data.box[i].id] = pos ;
 	}
+	this.redraw(data) ;
 }
 this.redraw = function(data) {	
 	var s = [] ;
 	for(var id in this.bpos) {
-		s.push(`#${id} {left:${this.bpos[id].x}rem;top:${this.bpos[id].y}rem;}`)
+		$('#'+id).css('left',this.bpos[id].x+"rem").css('top',this.bpos[id].y+"rem") ;
 	}
-	this.pstyle.html( s.join("\n")) ;
+
 	s=[] ;
 	for(var i in data.conn) {	
 		var c = data.conn[i]
 		var l = connect($("#"+c.from),$("#"+c.to),c.param) ;
+		if(l==null) continue ;
 		for(var j in l) s.push(l[j]) ;
 	}
 	this.svg.html(s.join("")) ;
 	
 }
-this.savepos = function(id,x,y) {
+this.setpos = function(id,x,y) {
 //	console.log(`savepos ${id} ${x}-${y}`) ;
 	this.bpos[id] = {x:parseFloat(x),y:parseFloat(y)} ;
 }
 
 function round(x) { return Math.floor(x*10)/10; }
-var lp = {x:0,y:0} ;
-function create(editable,box) {
+
+// create dom block 
+this.create = function(editable,box) {
 	var d = editable?"true":"false" ;
 	var type,inner ;
 	if(typeof box.inner == "object") {
@@ -53,8 +56,7 @@ function create(editable,box) {
 	}
 	var pos = box.pos ;
 	if(pos==undefined) {
-		pos = {x:parseInt(lp.x)+5,y:parseInt(lp.y)+2} ;
-		console.log(pos);
+		pos =  lp ;
 	}
 
 	var e = $(type).addClass("box").attr('id',box.id).attr('title',box.id).
@@ -63,11 +65,14 @@ function create(editable,box) {
 		if(typeof box.cls == "string") box.cls = [box.cls] ;
 		for(var i in box.cls) e.addClass(box.cls[i]) ;
 	}
-	$('#base').append(e) ;
-	lp = pos ;
+	this.base.append(e) ;
+	lp = {x:parseInt(pos.x) + round(parseInt(e.css('width'))/16)+2,y:parseInt(pos.y)+1};
 	return pos ;
 }
+// draw connect line 
 function connect(o1,o2,param) {
+	if(o1.length==0 || o2.length==0) return null ;
+	
 	var em = 16 ;
 	function s(o,f) {
 		var sx = parseInt(o.css('left')) ;
@@ -108,8 +113,18 @@ function connect(o1,o2,param) {
 //	console.log(sp); 
 //	console.log(ep) ;
 	var style = 'stroke:'+((param.col)?param.col:"#000")+';stroke-width:'+((param.width)?param.width:1)+';' ;
-	var cls = (param.cls)?'class="'+param.cls+'"':"" ;
-	if(param.type=="s") {
+	var cls = "" ;
+	if(param.cls) {
+		var c = param.cls.split(" ") ;
+		var cc = [] ;
+		for(var i in c) {
+			if(c[i].match(/^S|B$/)) {
+				param.type = c[i] ;
+			} else cc.push(c[i]) ;
+		}
+		if(cc.length>0) cls = 'class="'+cc.join(" ")+'"' ;
+	}
+	if(param.type=="S") {
 		ret.push(`<path d="M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}" ${cls} />`) ;
 	} else {
 		var pm = 100 ;
@@ -126,7 +141,7 @@ function connect(o1,o2,param) {
 			return {x:px/vn,y:py/vn} ;		
 		}
 		function av(sp,ep) {
-			v = (param.type=="s")?{x:sp.x-ep.x ,y:sp.y-ep.y}:{x:ep.vx,y:ep.vy} ;
+			v = (param.type=="S")?{x:sp.x-ep.x ,y:sp.y-ep.y}:{x:ep.vx,y:ep.vy} ;
 			p1 = rot(v,th) ;
 			p2 = rot(v,-th) ;
 			ret.push(`<path d="M ${round(ep.x+p1.x*an)} ${round(ep.y+p1.y*an)} L ${ep.x} ${ep.y} L ${round(ep.x+p2.x*an)} ${round(ep.y+p2.y*an)}" ${cls} style="stroke-dasharray:0" />`)
@@ -135,6 +150,92 @@ function connect(o1,o2,param) {
 		if(param.arrow=="b"||param.arrow=="f") av(ep,sp) ;
 	}
 	return ret //	return {sp:sp,ep:ep} ;
+}
+// md parser
+this.m_h = /^\[([a-z0-9-_]+)\]\s*(?:\((.+)\))?\s*(?:<([0-9\.]+),([0-9\.]+)>)?$/ ;
+this.parse = function(text) {
+	var box = [] ;
+	var conn = [] ;
+	var l = text.split("\n") ;
+	var b = {id:"",bl:[]} ;
+	for(var i in l) {
+		var cl = l[i] ;
+		var a ;
+		if(cl=="") continue ;
+		if(a = this.m_h.exec(cl)) {
+			if(b.bl.length>0) {
+				pbox(b) ;
+			}
+			b.id = a[1] ;
+			b.bl = [] ;
+			b.cls = a[2] ;
+			b.pos = (a[3]!=undefined && a[4]!=undefined)?{x:a[3],y:a[4]}:undefined ;
+		} else {
+			b.bl.push( cl );
+		}
+	}
+	if(b.bl.length>0) pbox(b) ;
+
+	function pbox(b) {
+		var l = [] ;
+		var ll = [] ;
+		var m_sep = /^---$/ ;
+		var m_title = /^#(.+)/ ;
+		var m_link = /^([u|d|l|r][0-9]*)?(<)?=(?:\((.*)\))?=(>)?([u|d|l|r][0-9]*)?\[([a-z0-9-_]+)\]([a-z])?$/i ;
+		var m_ulink= /\?\[(.+)\](?:\(([^ ")]+)\s*(?:"(.+)")?\))?$/i ;
+		var m_image = /\!\[(.+)\](?:\(([^ ")]+)\s*(?:"(.+)")?\))?/i ;
+		var m_comm = /^\/\// ;
+		var a ;
+		for(var i in b.bl) {
+			var cl = b.bl[i] ;
+			if(m_sep.exec(cl)) {
+				if(ll.length>0) l.push( ll.join("<br/>")) ;
+				ll = [] ;
+			} else if(a = m_title.exec(cl)) {
+				b.title = a[1] ;
+			} else if( a=m_link.exec(cl)) {
+				if(ll.length>0) l.push( ll.join("<br/>")) ;
+				ll = [] ;
+				var fp = "r" ;
+				var tp = "l1" ;
+				var ar = (a[2]!=undefined)?((a[4]!=undefined)?"b":"f"):((a[4]!=undefined)?"t":"") ;
+				if(a[1]!=undefined) fp = a[1]
+				if(a[5]!=undefined) tp = a[5] ;
+				conn.push( {from:b.id,to:a[6],param:{s_pos:(fp+(l.length+((b.title!=undefined)?1:0))),e_pos:tp,cls:a[3],arrow:ar,type:a[7]}}) ;
+			} else if(a = m_image.exec(cl)) {
+				var l = ( `<img src="${a[2]}" title="${a[1]}" />`) ;
+				if(a[3]!=undefined) {
+					l = "<figure>"+l+"<figcaption>"+a[3]+"</figcaption></figure>" ;
+				}
+			} else if(m_comm.exec(cl)){
+				continue ;
+			} else {
+				m_b = new RegExp(/\*\*(.+?)\*\*/g );
+				while((m = m_b.exec(cl))!=null) {
+					cl = cl.replace(m[0],"<strong>"+m[1]+"</strong>") ;
+				}
+				ll.push(cl) ;
+			}
+		}
+		if(ll.length>0) l.push( ll.join("<br/>")) ;
+//		console.log("class="+b.cls) ;
+		if(l.length==1) l = l[0] ;
+		box.push( {id:b.id,inner:l,pos:b.pos,cls:b.cls,title:b.title} ) ;
+	}
+	return {box:box,conn:conn} ;
+}
+this.upd_text = function(text) {
+	var l = text.split("\n") ;
+	for(var i in l) {
+		var cl = l[i] ;
+		var a ;
+		if(cl=="") continue ;
+		if(a = this.m_h.exec(cl)) {
+			var pos = (this.bpos[a[1]]!=undefined)?this.bpos[a[1]]:{x:a[3],y:a[4]} ;
+			l[i] = "["+a[1]+"]"+((a[2]!=undefined)?"("+a[2]+")":"")+" <"+pos.x+","+pos.y+">" ;
+		}
+	}
+	return l.join("\n") ;
 }
 }
 
