@@ -5,10 +5,12 @@ this.svg = $("svg",base) ;
 this.bpos = {} ;	
 this.em = parseInt($('html').css('font-size')) ;
 
+/*
 if(this.svg.length==0) {
 	this.svg = $(document.createElement("svg")) ;
 	this.base.append(this.svg) ;
 }
+*/
 var lp = {x:0,y:0},le ;
 this.setobj = function(data) {
 	$('div,table',this.base).remove() ;
@@ -32,7 +34,9 @@ this.redraw = function(data) {
 		if(l==null) continue ;
 		for(var j in l) s.push(l[j]) ;
 	}
-	this.svg.html(s.join("")) ;
+	$("#base svg").remove() ;
+	$("#base").append("<svg>"+ s.join("")+"</svg>") ;
+//	this.svg.html(s.join("")) ;
 	
 }
 this.setpos = function(id,x,y) {
