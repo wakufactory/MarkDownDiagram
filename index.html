@@ -6,67 +6,8 @@
 <title>mdg</title>
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/mdg_draw.js"></script>
-<script type="text/javascript">
-$(function() {
-	var mag = 1.0 ;
-	$('#base').css('width',"2000px").css('height',"2900px") ;
-	
-	$('#zoom').on("input",function() {
-		mag = $(this).val()/100 ;
-//		console.log(mag) ;
-		$('#szoom').html("#base {transform: scale("+mag+")}");
-	})	
-	$('#size_x,#size_y').on("change",function() {
-		var id = $(this).attr("id") ;
-		if(id=="size_x") {
-			$('#base').css('width',$(this).val()+"px") ;
-		} else if(id=="size_y") { 
-			$('#base').css('height',$(this).val()+"px") ;
-		}
-	})
-	var b = new mdg_draw($('#base')) ;
-	var data = b.parse($('#source').val()) ;
-	b.setobj(data) ;
-	
-	$('#source').on('keyup',function() {
-		data = b.parse($(this).val()) ;
-			b.setobj(data) ;
-	})
-
-	$(window).resize($('#base'),function() {
-//		redraw(can,data.conn) ;
-	})
-	$(document).on("dragstart",'#base .box',function(ev){
-		var oe = ev.originalEvent ;
-//		console.log("dstart") ;
-//		console.log(oe.pageX+"/"+oe.pageY);
-		ev.originalEvent.dataTransfer.setData("text",$(this).attr('id')+"/"+oe.pageX+"/"+oe.pageY);
-	})
-	$('#base').on("dragenter dragover",function(){
-		return false ;
-	}).on("drop",function(ev){
-		var oe = ev.originalEvent ;
-		var k = ev.originalEvent.dataTransfer.getData("text").split("/") ;
-		var id = k[0] ;
-		
-		var ox = (oe.pageX-k[1])/mag ;
-		var oy = (oe.pageY-k[2])/mag ;
-//		console.log(ox+"/"+oy) ;
-		var em = parseInt($('html').css('font-size')) ;
-
-		var ex = parseInt($('#'+id).css("left")) ;
-		var ey = parseInt($('#'+id).css("top")) ;
-		var px = Math.floor(((ex+ox)/em+0.25)*2)/2 ;
-		var py = Math.floor(((ey+oy)/em+0.25)*2)/2 ;
-
-		b.setpos(id,px,py) ;
-		b.redraw(data) ;
-		$('#source').val(b.upd_text($('#source').val())) ;
-		return false ;
-	})
-})
-</script>
-<link rel="stylesheet" type="text/css" href="mdg.css">
+<script type="text/javascript" src="js/mdg_edit.js"></script>
+<link rel="stylesheet" type="text/css" href="css/mdg.css">
 <style type="text/css">
 html,body{
 	width:100%;
@@ -74,40 +15,57 @@ html,body{
 	margin:0 ;
 	padding:0 ;
 	box-sizing:border-box;
+	overflow:hidden ;
 }
 #main {
 	display:flex ;
+	flex-direction: row ;
 	width:100% ;
 	height:100% ;
+	background-color:#222 ;
+	color:white;
 }
 #edit {
-	frex-direction: row ;
-	width:30% ;		
-	height:calc(100% - 2em) ;
-	padding:1em ;
+	width:30% ;
+	height:100% ;
+	display:flex ;
+	flex-direction:column ;
 }
 #view {
-	frex-direction: row ;
-	width:70% ;	
 	height:100% ;
-
+	flex-grow:1;
+	display:flex ;
+	flex-direction: column ;
+}
+#control {
+	margin-left:1rem ;
 }
 #vbase {
-	height:calc(100% - 2em) ;
+	height:100% ;
+	position:relative ;
+}
+#rollbase {
+	position:absolute ;
+	top:5px ;
+	right:5px;
+	bottom:5px;
+	left:5px; 
 	overflow:scroll ;	
 }
 #base {
 	display:block ;
 	font-family:sans-serif;
-	margin:10px ;
-	width:calc(100% - 20px) ;
-	height:calc(100% - 20px);
 	background-color:#eef ;
 	transform-origin:0 0 ;
+	color:black ;
 }
 #source {
-	width:calc(100%) ;
-	height:calc(100% - 10em) ;
+	position:absolute;
+	width:calc(100% - 15px) ;
+	height:calc(100% - 15px) ;
+	left:5px ;
+	top:5px ;
+	bottom:5px ;
 	font-size:1rem ;
 	font-family:monospace ;
 }
@@ -115,7 +73,13 @@ html,body{
 input[type=range] {
 	width:300px ;
 }
-
+div.resbar_h {
+	width:5px ;
+	border:1px solid black ;
+	background-color:#ccc ;
+	cursor:col-resize ;
+	user-select: none;
+}
 </style>
 <style id=szoom>
 #base {
@@ -141,6 +105,9 @@ input[type=range] {
 	#control {
 		display:none ;
 	}
+	#rb {
+		display:none ;
+	}
 	#base {
 		width:calc(100% - 10mm) ;
 		margin:5mm ;
@@ -150,13 +117,13 @@ input[type=range] {
 	}
 }
 </style>
-
-<link rel="stylesheet" type="text/css" href="custom.css">
+<link rel="stylesheet" type="text/css" href="css/custom.css">
 </head>
 <body>
 <div id=main>
-<div id=edit>
-<h2>edit</h2>
+<section id=edit>
+<div> MarkDownGraph</div>
+<div style="flex-grow:1;position:relative ;">
 <textarea id=source>
 [b1] <1,1>
 あああああ
@@ -194,16 +161,25 @@ node
 
 </textarea>
 </div>
-<div id=view>
+<div>
+<button id=b_load>LOAD</button>
+<button id=b_save>SAVE</button>
+<button id=b_html>DOWNLOAD html</button>
+</div>
+</section>
+<div class=resbar_h id="rb"></div>
+<section id=view>
 <div id=control>
 zoom:<input type=range id=zoom min=25 max=200 value=100>
 width:<input type=text id=size_x size=6 value=2000> height:<input type=text id=size_y size=6 value=2800>
 </div>
 <div id=vbase>
-<div id=base class=mdg><svg id=mdg_svg></svg>
+<div id=rollbase>
+<div id=base class=mdg><svg id=mdg_svg></svg></div>
 </div>
 </div>
-</div>
+
+</section>
 </div>
 </body>
 </html>

@@ -214,7 +214,7 @@ this.parse = function(text) {
 			} else if(m_comm.exec(cl)){
 				continue ;
 			} else {
-				m_b = new RegExp(/\*\*(.+?)\*\*/g );
+				m_b = /\*\*(.+?)\*\*/g　;
 				while((m = m_b.exec(cl))!=null) {
 					cl = cl.replace(m[0],"<strong>"+m[1]+"</strong>") ;
 				}
@@ -236,7 +236,7 @@ this.upd_text = function(text) {
 		if(cl=="") continue ;
 		if(a = this.m_h.exec(cl)) {
 			var pos = (this.bpos[a[1]]!=undefined)?this.bpos[a[1]]:{x:a[3],y:a[4]} ;
-			l[i] = "["+a[1]+"]"+((a[2]!=undefined)?"("+a[2]+")":"")+" <"+pos.x+","+pos.y+">" ;
+			l[i] = "["+a[1]+"]"+((a[2]!=undefined)?" ("+a[2]+")":"")+" <"+pos.x+","+pos.y+">" ;
 		}
 	}
 	return l.join("\n") ;
