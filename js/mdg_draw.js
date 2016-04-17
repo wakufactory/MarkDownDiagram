@@ -5,39 +5,35 @@ this.svg = $("svg",base) ;
 this.bpos = {} ;	
 this.em = parseInt($('html').css('font-size')) ;
 
-/*
-if(this.svg.length==0) {
-	this.svg = $(document.createElement("svg")) ;
-	this.base.append(this.svg) ;
-}
-*/
-var lp = {x:0,y:0},le ;
-this.setobj = function(data) {
+var lp,le ;
+this.setobj = function(data,delay) {
 	$('div,table',this.base).remove() ;
-	lp = {x:0,y:0} ;
+	lp = {x:1,y:1} ;
 	for(var i in data.box) {
 		var pos = this.create(true,data.box[i]) ;
 		this.bpos[data.box[i].id] = pos ;
 	}
-	this.redraw(data) ;
+	var self = this ;
+	this.redraw(data,delay);
 }
-this.redraw = function(data) {	
+this.redraw = function(data,delay) {	
 	var s = [] ;
 	for(var id in this.bpos) {
 		$('#'+id).css('left',this.bpos[id].x+"rem").css('top',this.bpos[id].y+"rem") ;
 	}
+	var base = this.base ;
+	setTimeout(function() {
+		s=[] ;
+		for(var i in data.conn) {	
+			var c = data.conn[i]
+			var l = connect($("#"+c.from),$("#"+c.to),c.param) ;
+			if(l==null) continue ;
+			for(var j in l) s.push(l[j]) ;
+		}
+		$("svg",base).remove() ;
+		base.append("<svg>"+ s.join("")+"</svg>") ;
+	},(delay==true)?500:0) ;
 
-	s=[] ;
-	for(var i in data.conn) {	
-		var c = data.conn[i]
-		var l = connect($("#"+c.from),$("#"+c.to),c.param) ;
-		if(l==null) continue ;
-		for(var j in l) s.push(l[j]) ;
-	}
-	$("#base svg").remove() ;
-	$("#base").append("<svg>"+ s.join("")+"</svg>") ;
-//	this.svg.html(s.join("")) ;
-	
 }
 this.setpos = function(id,x,y) {
 //	console.log(`savepos ${id} ${x}-${y}`) ;
@@ -51,6 +47,12 @@ this.create = function(editable,box) {
 	var d = editable?"true":"false" ;
 	var type,inner ;
 	if(typeof box.inner == "object") {
+		for(var tr in box.inner) {
+			var tt = box.inner[tr].split(" | ") ;
+			if(tt.length>1) {
+				box.inner[tr] = tt.join("</td><td>") ;
+			} 
+		}
 		type ="<table>" ;
 		inner = "<tr><td>"+box.inner.join("</td></tr><tr><td>")+"</td></tr>" ;
 		if(box.title) inner = "<tr><th>"+box.title+"</th></tr>" +inner ;
@@ -84,6 +86,7 @@ function connect(o1,o2,param) {
 		var h = parseInt(o.css('height')) ;
 		var px,py,vx,vy ;
 		var t = $('tr',o) ;
+		var d = $('td',o) ;
 		if(t.length>0 && f.match(/(l|r)([0-9]+)/)) {
 			vy = 0 ;
 			if(RegExp.$1=="l") {
@@ -95,6 +98,17 @@ function connect(o1,o2,param) {
 			}
 			var tn = RegExp.$2-1 ;
 			py = sy + t[tn].offsetTop+t[tn].offsetHeight/2 ;
+		} else if(d.length>0 && f.match(/(u|d)([0-9]+)/)) {
+			vx = 0 ;
+			if(RegExp.$1=="u") {
+				py = sy ;
+				vy = -1 ;
+			} else if(RegExp.$1=="d") {
+				py = sy+h ;
+				vy = 1 ;
+			}
+			var tn = RegExp.$2-1 ;
+			px = sx + d[tn].offsetLeft+d[tn].offsetWidth/2 ;
 		} else {
 			switch(f.substr(0,1)) {
 				case 'u':
@@ -130,12 +144,12 @@ function connect(o1,o2,param) {
 	if(param.type=="S") {
 		ret.push(`<path d="M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}" ${cls} />`) ;
 	} else {
-		var pm = 100 ;
+		var pm = 50 ;
 		ret.push(`<path d="M ${sp.x} ${sp.y} C ${sp.x+sp.vx*pm} ${sp.y+sp.vy*pm} ${ep.x+ep.vx*pm} ${ep.y+ep.vy*pm} ${ep.x} ${ep.y}" ${cls} />`) ;
 	}
 	if(param.arrow) {
 		var th = 3.14159*20/180 ;
-		var an = 20 ;
+		var an = 15 ;
 		var v,p ;
 		function rot(v,th) {
 			var px = v.x * Math.cos(th) - v.y * Math.sin(th) ;
@@ -155,7 +169,8 @@ function connect(o1,o2,param) {
 	return ret //	return {sp:sp,ep:ep} ;
 }
 // md parser
-this.m_h = /^\[([a-z0-9-_]+)\]\s*(?:\((.+)\))?\s*(?:<([0-9\.]+),([0-9\.]+)>)?$/ ;
+this.m_h = /^\[([a-z0-9-_]+)\]\s*(?:\((.*)\))?\s*(?:<([0-9\.]+),([0-9\.]+)>)?$/ ;
+this.m_comm = /^\/\// ;
 this.parse = function(text) {
 	var box = [] ;
 	var conn = [] ;
@@ -165,6 +180,9 @@ this.parse = function(text) {
 		var cl = l[i] ;
 		var a ;
 		if(cl=="") continue ;
+		if(this.m_comm.exec(cl)) {
+			continue ;	
+		}else 
 		if(a = this.m_h.exec(cl)) {
 			if(b.bl.length>0) {
 				pbox(b) ;
@@ -182,12 +200,12 @@ this.parse = function(text) {
 	function pbox(b) {
 		var l = [] ;
 		var ll = [] ;
-		var m_sep = /^---$/ ;
+		var m_sep = /^---*$/ ;
 		var m_title = /^#(.+)/ ;
-		var m_link = /^([u|d|l|r][0-9]*)?(<)?=(?:\((.*)\))?=(>)?([u|d|l|r][0-9]*)?\[([a-z0-9-_]+)\]([a-z])?$/i ;
+		var m_link = /^([u|d|l|r][0-9]*)?(<)?==?(?:\((.*)\))?==?(>)?([u|d|l|r][0-9]*)?\[([a-z0-9-_]+)\]([a-z])?$/i ;
 		var m_ulink= /\?\[(.+)\](?:\(([^ ")]+)\s*(?:"(.+)")?\))?$/i ;
 		var m_image = /\!\[(.+)\](?:\(([^ ")]+)\s*(?:"(.+)")?\))?/i ;
-		var m_comm = /^\/\// ;
+
 		var a ;
 		for(var i in b.bl) {
 			var cl = b.bl[i] ;
@@ -211,8 +229,6 @@ this.parse = function(text) {
 					im = "<figure>"+im+"<figcaption>"+a[3]+"</figcaption></figure>" ;
 				}
 				ll.push(im) ;
-			} else if(m_comm.exec(cl)){
-				continue ;
 			} else {
 				m_b = /\*\*(.+?)\*\*/g　;
 				while((m = m_b.exec(cl))!=null) {

@@ -16,6 +16,7 @@ html,body{
 	padding:0 ;
 	box-sizing:border-box;
 	overflow:hidden ;
+	font-family:sans-serif ;
 }
 #main {
 	display:flex ;
@@ -59,6 +60,10 @@ html,body{
 	transform-origin:0 0 ;
 	color:black ;
 }
+#sbase {
+	 flex-grow:1;
+	 position:relative ;
+}
 #source {
 	position:absolute;
 	width:calc(100% - 15px) ;
@@ -67,18 +72,29 @@ html,body{
 	top:5px ;
 	bottom:5px ;
 	font-size:1rem ;
-	font-family:monospace ;
+	font-family:monospace,sans-serif ;
 }
-
+#exp_src {
+	display:none ;
+}
+#i_fname {
+	width:10rem ;
+}
+input,button {
+	font-size:1rem ;
+}
 input[type=range] {
 	width:300px ;
+	background-color:#ccc;
 }
 div.resbar_h {
-	width:5px ;
-	border:1px solid black ;
+	width:4px ;
 	background-color:#ccc ;
 	cursor:col-resize ;
 	user-select: none;
+}
+div.mdiv {
+	margin:5px ;
 }
 </style>
 <style id=szoom>
@@ -88,13 +104,16 @@ div.resbar_h {
 </style>
 <style>
 @page {
-	size: A4 ;
+	size: A4 landscape ;
 	margin: 0;
 }
 
 @media print {
 	body {
-		width:210mm ;	
+		width:297mm ;	
+	}
+	#main {
+		background-color:white ;		
 	}
 	#edit {
 		display:none ;
@@ -112,7 +131,7 @@ div.resbar_h {
 		width:calc(100% - 10mm) ;
 		margin:5mm ;
 		padding:0 ;
-#		background-color:#fff ;
+		background-color:white ;
 		transform: scale(0.37) ;
 	}
 }
@@ -123,62 +142,72 @@ div.resbar_h {
 <div id=main>
 <section id=edit>
 <div> MarkDownGraph</div>
-<div style="flex-grow:1;position:relative ;">
+
+<div id=sbase>
 <textarea id=source>
+//[name]はブロックの定義
+//--- はテーブル行の区切り
+//==> はブロック間のリンク
 [b1] <1,1>
-あああああ
-<=(l_w4 l_d10 red)=>u[b2]
-いいいい
+#block1
+content
+---
+to-block2
+==>[b2]
+to-block3
 ==>[b3]
 
-//コメントです
-[b2] (bg_red bd_r6) <7,6.5>
-いいいいい
-いいいい
-==>l2[b3]
-
-[b3] <15.5,2.5>
-#たいとる
-ええ**え**ええ
-=(S blue)=[b5]
-+
-+
+[b2] <11,1.5>
+#block2
+content
 ---
-おおおおお
-==r[b4]
+to-block4
+==>[b4]
 
-[b4](custom1) <8.5,15.5>
-ああああああ
-l==>d[b1]
+[b3] <11,10.5>
+block3
 
-[b5](image bold) <26,2>
-![image](img/computer_server.png "192.168.2.1")
-d=(S l_w4)=>u[b6]
+//==>の前後のlrudは、リンクを繋ぐ位置を指定
+[b4] <20.6,4>
+block4
+d==>u[b5]
+==>[b6]
 
-[b6](circle4 bold) <29.5,17>
-node
+//()内はスタイルを設定するクラス名
+[b5] (bd_r6 red bold) <20.5,11.5>
+block5
+d=(S red)=>r[b7]
+l<=(l_w4)=>r[b3]
+
+//画像使用例
+[b6] (image) <31,6>
+![server](img/computer_server.png "192.168.1.1")
+
+//カスタムスタイル
+[b7] (custom1) <6,16>
+block6
 
 
 </textarea>
 </div>
-<div>
+<div class="mdiv">
+<div>filename:<input type=text id=i_fname value="sample.mdg" /></div>
 <button id=b_load>LOAD</button>
-<button id=b_save>SAVE</button>
-<button id=b_html>DOWNLOAD html</button>
+<input type=file id=f_load style="display:none" />
+<a href="" id=l_save target="_blank"><button id=b_save>SAVE</button></a>
 </div>
 </section>
 <div class=resbar_h id="rb"></div>
 <section id=view>
-<div id=control>
+<section id=control>
 zoom:<input type=range id=zoom min=25 max=200 value=100>
-width:<input type=text id=size_x size=6 value=2000> height:<input type=text id=size_y size=6 value=2800>
-</div>
+width:<input type=text id=size_x size=6 value=2900> height:<input type=text id=size_y size=6 value=2000>
+</section>
 <div id=vbase>
 <div id=rollbase>
 <div id=base class=mdg><svg id=mdg_svg></svg></div>
 </div>
 </div>
-
 </section>
 </div>
 </body>
