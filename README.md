@@ -85,3 +85,9 @@ css/custom.css にカスタムのスタイルを追加して使用できます�
 
 画像はどこにあっても大丈夫ですが、imgの下に入れるとよいでしょう。
 
+#Copyright
+
+Copyright 2016 Wakufactory 
+http://wakufactory.jp/ twitter:@wakufactory
+
+License: MIT 
