@@ -40,6 +40,7 @@ $(function() {
 	$('#source').on('keyup',function() {
 		var s = $(this).val() ;
 		data = b.parse(s) ;
+//		console.log(data) ;
 		b.setobj(data) ;
 		savelocal({"source":s,"fname":$('#i_fname').val()}) ;
 	})

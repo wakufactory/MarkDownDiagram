@@ -46,7 +46,8 @@ function round(x) { return Math.floor(x*10)/10; }
 this.create = function(editable,box) {
 	var d = editable?"true":"false" ;
 	var type,inner ;
-	if(typeof box.inner == "object") {
+	if(typeof box.inner == "object" || box.title!=null) {
+		if(typeof box.inner != "object") box.inner = [box.inner] ;
 		for(var tr in box.inner) {
 			var tt = box.inner[tr].split(" | ") ;
 			if(tt.length>1) {
@@ -55,7 +56,7 @@ this.create = function(editable,box) {
 		}
 		type ="<table>" ;
 		inner = "<tr><td>"+box.inner.join("</td></tr><tr><td>")+"</td></tr>" ;
-		if(box.title) inner = "<tr><th>"+box.title+"</th></tr>" +inner ;
+		if(box.title!=null) inner = "<tr><th>"+box.title+"</th></tr>" +inner ;
 	} else {
 		type = "<div>" ;
 		inner = box.inner ;
@@ -86,7 +87,7 @@ function connect(o1,o2,param) {
 		var h = parseInt(o.css('height')) ;
 		var px,py,vx,vy ;
 		var t = $('tr',o) ;
-		var d = $('td',o) ;
+		var d = $('th,td',o) ;
 		if(t.length>0 && f.match(/(l|r)([0-9]+)/)) {
 			vy = 0 ;
 			if(RegExp.$1=="l") {
@@ -107,7 +108,7 @@ function connect(o1,o2,param) {
 				py = sy+h ;
 				vy = 1 ;
 			}
-			var tn = RegExp.$2-1 ;
+			var tn = (RegExp.$2!=undefined)?RegExp.$2-1:0 ;
 			px = sx + d[tn].offsetLeft+d[tn].offsetWidth/2 ;
 		} else {
 			switch(f.substr(0,1)) {
@@ -207,7 +208,7 @@ this.parse = function(text) {
 		var m_image = /\!\[(.+)\](?:\(([^ ")]+)\s*(?:"(.+)")?\))?/i ;
 
 		var a ;
-		b.title = "" ;
+		b.title = null ;
 		for(var i in b.bl) {
 			var cl = b.bl[i] ;
 			if(m_sep.exec(cl)) {
@@ -223,7 +224,7 @@ this.parse = function(text) {
 				var ar = (a[2]!=undefined)?((a[4]!=undefined)?"b":"f"):((a[4]!=undefined)?"t":"") ;
 				if(a[1]!=undefined) fp = a[1]
 				if(a[5]!=undefined) tp = a[5] ;
-				conn.push( {from:b.id,to:a[6],param:{s_pos:(fp+(l.length+((b.title!=undefined)?1:0))),e_pos:tp,cls:a[3],arrow:ar,type:a[7]}}) ;
+				conn.push( {from:b.id,to:a[6],param:{s_pos:(fp+(l.length+((b.title!=null)?1:0))),e_pos:tp,cls:a[3],arrow:ar,type:a[7]}}) ;
 			} else if(a = m_image.exec(cl)) {
 				var im = ( `<img src="${a[2]}" title="${a[1]}" />`) ;
 				if(a[3]!=undefined) {
