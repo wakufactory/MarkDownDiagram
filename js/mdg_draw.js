@@ -201,12 +201,13 @@ this.parse = function(text) {
 		var l = [] ;
 		var ll = [] ;
 		var m_sep = /^---*$/ ;
-		var m_title = /^#(.+)/ ;
+		var m_title = /^#(.*)/ ;
 		var m_link = /^([u|d|l|r][0-9]*)?(<)?==?(?:\((.*)\))?==?(>)?([u|d|l|r][0-9]*)?\[([a-z0-9-_]+)\]([a-z])?$/i ;
 		var m_ulink= /\?\[(.+)\](?:\(([^ ")]+)\s*(?:"(.+)")?\))?$/i ;
 		var m_image = /\!\[(.+)\](?:\(([^ ")]+)\s*(?:"(.+)")?\))?/i ;
 
 		var a ;
+		b.title = "" ;
 		for(var i in b.bl) {
 			var cl = b.bl[i] ;
 			if(m_sep.exec(cl)) {
