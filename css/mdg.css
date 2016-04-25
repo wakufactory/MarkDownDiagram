@@ -19,10 +19,12 @@ div.mdg .box {
 	box-sizing:border-box;
 	cursor:move;
 }
+div.mdg div.box {
+	text-align:center ;
+}
 div.mdg table.box {
 	border-collapse: collapse ;
 	margin:0 ;
-	padding:0 ;	
 }
 div.mdg table td {
 	padding:0.25em;
@@ -30,6 +32,7 @@ div.mdg table td {
 }
 div.mdg table th {
 	background-color:#eee ;
+	text-align: center ;
 }
 div.mdg svg line {
 	stroke:#000 ;
@@ -39,6 +42,9 @@ div.mdg svg path {
 	stroke:#000 ;
 	stroke-width:2px ;
 	fill:none ;
+}
+figure {
+	margin:0 ;
 }
 
 /* preset class */
@@ -55,9 +61,8 @@ div.mdg div.image {
 div.mdg div.image img {
 	max-width:100px ;	
 }
-figure {
-	margin:0 ;
-}
+
+/* text/stroke color */
 div.mdg .red {
 	color:red ;
 	stroke:#f00 ;
@@ -66,29 +71,75 @@ div.mdg .blue {
 	color:blue ;
 	stroke:#00f ;
 }
-div.mdg .bold {
-	font-weight:bold ;
+div.mdg .green {
+	color:blue ;
+	stroke:#0f0 ;
 }
+div.mdg .white {
+	color:white ;
+	stroke:#fff ;
+}
+div.mdg .gray {
+	color:blue ;
+	stroke:#888 ;
+}
+/* border color */
 div.mdg .bd_red {
 	border-color:red ;
 }
 div.mdg .bd_blue {
 	border-color:blue ;
 }
+div.mdg .bd_green {
+	border-color:green ;
+}
+/* bg color */
 div.mdg .bg_red {
 	background-color:#fee ;
 }
 div.mdg .bg_blue {
 	background-color:#eef ;
 }
+div.mdg .bg_green {
+	background-color:#efe ;
+}
+div.mdg .bg_g25 {
+	background-color:#444 ;
+}
+div.mdg .bg_g50 {
+	background-color:#888 ;
+}
+div.mdg .bg_g75 {
+	background-color:#ccc ;
+}
+div.mdg .bg_black {
+	background-color:#000 ;
+}
+/* line style */
+div.mdg .l_w2 {
+	stroke-width:2px ;
+}
+div.mdg .l_w3 {
+	stroke-width:3px ;
+}
 div.mdg .l_w4 {
 	stroke-width:4px ;
+}
+div.mdg .l_w5 {
+	stroke-width:5px ;
 }
 div.mdg .l_d10 {
 	stroke-dasharray:10px ;
 }
+/* border radius */
 div.mdg .bd_r6 {
 	border-radius:6px ;
+}
+div.mdg .bd_r10 {
+	border-radius:10px ;
+}
+div.mdg .bd_r20 {
+	border-radius:20px ;
 }
 div.mdg .circle4 {
 	width:4em;
@@ -96,4 +147,75 @@ div.mdg .circle4 {
 	text-align:center ;
 	padding-top:1em ;
 	border-radius:2em ;
+}
+/* alignment */
+div.mdg div.TC,table.TC {
+	text-align:center ;
+}
+div.mdg div.TR,table.TR {
+	text-align:right ;
+}
+div.mdg div.TL,table.TL {
+	text-align:left ;
+}
+/* font-style */
+div.mdg .bold {
+	font-weight:bold ;
+}
+div.mdg .FB {
+	font-weight:bold ;
+}
+div.mdg .FI {
+	font-style: italic ;
+}
+div.mdg .FM {
+	font-family:monospace;
+}
+/*　font-size */
+div.mdg .F05 {
+	font-size:0.5rem ;
+}
+div.mdg .F08 {
+	font-size:0.8rem ;
+}
+div.mdg .F15 {
+	font-size:1.5rem ;
+}
+div.mdg .F20 {
+	font-size:2.0rem ;
+}
+/* paddng */
+div.mdg .P05 {
+	padding:0.5rem ;
+}
+div.mdg .P10 {
+	padding:1rem ;
+}
+div.mdg .P15 {
+	padding:1.5rem ;
+}
+div.mdg .P20 {
+	padding:2rem ;
+}
+/* box sizes */
+div.mdg .W05 {
+	width:5rem ;
+}
+div.mdg .W10 {
+	width:10rem ;
+}
+div.mdg .W15 {
+	width:15rem ;
+}
+div.mdg .W20 {
+	width:20rem ;
+}
+div.mdg .H2 {
+	height:2rem ;
+}
+div.mdg .H3 {
+	height:3rem ;
+}
+div.mdg .H4 {
+	height:4rem ;
 }
